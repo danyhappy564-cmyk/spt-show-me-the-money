@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <Version>2.8.0</Version>
 
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
@@ -30,45 +31,41 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" /> -->
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
     <PackageReference Include="UnityEngine.Modules" Version="2022.3.43" IncludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)/../Common/**/*.cs"
-      Exclude="$(MSBuildThisFileDirectory)/../Common/Utilities/FileHashingUtility.cs;$(MSBuildThisFileDirectory)/../Common/Utilities/FileSearchUtility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/ConfigurationManager/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Constants/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Environment/EFTGameExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Loggers/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Notifications/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Runtime/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Sessions/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/**/*.dll" /> -->
-
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/0Harmony.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Assembly-CSharp.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/BepInEx.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Comfort.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/ItemComponent.Types.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Newtonsoft.Json.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Sirenix.Serialization.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/spt-common.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/spt-reflection.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Unity.TextMeshPro.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/UnityEngine.CoreModule.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/UnityEngine.IMGUIModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/UnityEngine.UI.dll" />
+    <Reference Include="$(SptBepInEx)\core\0Harmony.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Assembly-CSharp.dll" Private="false" />
+    <Reference Include="$(SptBepInEx)\core\BepInEx.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Comfort.dll" Private="false" />
+    <Reference Include="$(SptManaged)\ItemComponent.Types.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Newtonsoft.Json.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Sirenix.Serialization.dll" Private="false" />
+    <Reference Include="$(SptBepInEx)\plugins\spt\spt-common.dll" Private="false" />
+    <Reference Include="$(SptBepInEx)\plugins\spt\spt-reflection.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Unity.TextMeshPro.dll" Private="false" />
+    <Reference Include="$(SptManaged)\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="$(SptManaged)\UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="$(SptManaged)\UnityEngine.UI.dll" Private="false" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2"
       PrivateAssets="all" />
   </ItemGroup>
-
-  <Import Project="$(MSBuildThisFileDirectory)/../Common/Utilities/Targets/ExtraCleanUp.targets" />
 
   <Target Name="GenerateLicenseFile" AfterTargets="Publish">
     <Message Text="Generating license file..." Importance="high" />

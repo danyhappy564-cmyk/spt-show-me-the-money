@@ -1,22 +1,20 @@
+using System.Threading;
 using System.Threading.Tasks;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Models.External;
 using SwiftXP.SPT.ShowMeTheMoney.Server.Http;
 
 namespace SwiftXP.SPT.ShowMeTheMoney.Server;
 
-[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.PreSptModLoader + 1)]
+[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.Preload + 1)]
 
 #pragma warning disable CS9113 // Parameter is unread.
 public class ShowMeTheMoneyMod(ModHttpListener httpListener)
 #pragma warning restore CS9113 // Parameter is unread.
-    : IPreSptLoadModAsync
+    : IOnLoad
 {
-#pragma warning disable CS1998 // This async method lacks 'await' operators.
-    public async Task PreSptLoadAsync()
-#pragma warning restore CS1998 // This async method lacks 'await' operators.
+    public Task OnLoadAsync(CancellationToken cancellationToken)
     {
-
+        return Task.CompletedTask;
     }
 }

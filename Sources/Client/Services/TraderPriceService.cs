@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using EFT;
 using EFT.InventoryLogic;
+using EFT.Trading;
 using SwiftXP.SPT.Common.ConfigurationManager;
 using SwiftXP.SPT.Common.Constants;
 using SwiftXP.SPT.Common.Sessions;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Contexts.Holders;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Data;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Extensions;
+using SwiftXP.SPT.ShowMeTheMoney.Client.Utilities;
 
 namespace SwiftXP.SPT.ShowMeTheMoney.Client.Services;
 
@@ -21,12 +23,12 @@ public class TraderPriceService
     public bool GetBestTraderPrice(TradeItem tradeItem)
     {
         TradePrice? highestTraderPrice = null;
-        foreach (TraderClass trader in SptSession.Session.Traders)
+        foreach (Trader trader in SptSession.Session.Traders)
         {
             if (IsTraderAvailable(trader))
             {
-                TraderClass.GStruct300? singleObjectPrice = null;
-                TraderClass.GStruct300? totalPrice = null;
+                Trader.ItemPrice? singleObjectPrice = null;
+                Trader.ItemPrice? totalPrice = null;
 
                 bool hasPrice = TryGetTraderUserItemPrice(trader, tradeItem, out singleObjectPrice, out totalPrice);
                 if (hasPrice && (!PluginContextHolder.Current!.Configuration!.RoublesOnly.IsEnabled() || singleObjectPrice!.Value.CurrencyId.ToString() == SptConstants.CurrencyIds.Roubles))
@@ -58,7 +60,7 @@ public class TraderPriceService
         return tradeItem.TraderPrice is not null;
     }
 
-    private bool IsTraderAvailable(TraderClass trader)
+    private bool IsTraderAvailable(Trader trader)
     {
         bool isAvailable = trader.Info.Available && !trader.Info.Disabled && trader.Info.Unlocked;
         bool isIgnored = TradersToIgnore.Any(
@@ -68,15 +70,15 @@ public class TraderPriceService
         return isAvailable && !isIgnored;
     }
 
-    private static bool TryGetTraderUserItemPrice(TraderClass trader, TradeItem tradeItem,
-        out TraderClass.GStruct300? singleObjectPrice, out TraderClass.GStruct300? totalPrice)
+    private static bool TryGetTraderUserItemPrice(Trader trader, TradeItem tradeItem,
+        out Trader.ItemPrice? singleObjectPrice, out Trader.ItemPrice? totalPrice)
     {
         singleObjectPrice = null;
         totalPrice = null;
 
         try
         {
-            Item singleItem = tradeItem.Item.CloneItem();
+            Item singleItem = tradeItem.Item.CloneForPricing();
             singleItem.StackObjectsCount = 1;
             singleObjectPrice = trader.GetUserItemPrice(singleItem);
 
@@ -91,10 +93,13 @@ public class TraderPriceService
         return singleObjectPrice is not null;
     }
 
-    private static double? GetCurrencyCourse(TraderClass trader, MongoID? currencyId)
+    private static double? GetCurrencyCourse(Trader trader, MongoID? currencyId)
     {
         if (!currencyId.HasValue)
             return null;
+
+        if (trader.CurrencyCourses != null && trader.CurrencyCourses.TryGetValue(currencyId.Value.ToString(), out double course))
+            return course;
 
         double? result = trader.GetSupplyData()?.CurrencyCourses[currencyId.Value];
 
