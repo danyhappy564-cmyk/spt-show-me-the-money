@@ -1,0 +1,18 @@
+<Project>
+
+  <!--
+    The mod's version is not declared anywhere in the repository, so a local build produces the
+    MSBuild default of 1.0.0. That version is what ends up in the BepInEx plugin metadata (via
+    BepInEx.PluginInfoProps -> MyPluginInfo.PLUGIN_VERSION) and in the server mod metadata (via
+    AppMetadata.Version, which reads the assembly version), so dependent plugins refuse to load:
+    "Could not load [Show Me The Money - Quick Sell] because it has missing dependencies:
+    com.swiftxp.spt.showmethemoney (v2.6.0 or newer)".
+
+    Declared here rather than per-project so the client and server always agree. Overridable with
+    -p:Version=... for a release build.
+  -->
+  <PropertyGroup>
+    <Version Condition="'$(Version)' == ''">2.7.0</Version>
+  </PropertyGroup>
+
+</Project>
