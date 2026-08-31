@@ -107,23 +107,26 @@ public class SimpleTooltipShowPatch : ModulePatch
             && !IsCheckmarkTooltip(tooltipText);
     }
 
+    // Localized() goes through the game's localisation lookup, and these three run on every single
+    // tooltip. The strings never change while the game is running, so resolve them once.
+    private static string? s_insuredByText;
+    private static string? s_stashText;
+    private static string? s_foundInRaidText;
+
     private static bool IsInsuredByTooltip(in string text)
     {
-        if (text.Contains("Insured by".Localized(null), StringComparison.InvariantCultureIgnoreCase))
-            return true;
+        s_insuredByText ??= "Insured by".Localized(null);
 
-        return false;
+        return text.Contains(s_insuredByText, StringComparison.InvariantCultureIgnoreCase);
     }
 
     private static bool IsCheckmarkTooltip(in string text)
     {
-        if (text.Contains("STASH".Localized(null), StringComparison.InvariantCultureIgnoreCase))
-            return true;
+        s_stashText ??= "STASH".Localized(null);
+        s_foundInRaidText ??= "FoundInRaid".Localized(null);
 
-        if (text.Contains("FoundInRaid".Localized(null), StringComparison.InvariantCultureIgnoreCase))
-            return true;
-
-        return false;
+        return text.Contains(s_stashText, StringComparison.InvariantCultureIgnoreCase)
+            || text.Contains(s_foundInRaidText, StringComparison.InvariantCultureIgnoreCase);
     }
 
     private static bool TryShowPriceInformation(out string? priceInformationText, out double? highestComparePrice)
