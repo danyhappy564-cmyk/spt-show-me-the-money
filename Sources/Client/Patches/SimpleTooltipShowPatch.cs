@@ -115,18 +115,37 @@ public class SimpleTooltipShowPatch : ModulePatch
 
     private static bool IsInsuredByTooltip(in string text)
     {
-        s_insuredByText ??= "Insured by".Localized(null);
+        string? insuredBy = Cached(ref s_insuredByText, "Insured by");
 
-        return text.Contains(s_insuredByText, StringComparison.InvariantCultureIgnoreCase);
+        return insuredBy is not null && text.Contains(insuredBy, StringComparison.InvariantCultureIgnoreCase);
     }
 
     private static bool IsCheckmarkTooltip(in string text)
     {
-        s_stashText ??= "STASH".Localized(null);
-        s_foundInRaidText ??= "FoundInRaid".Localized(null);
+        string? stash = Cached(ref s_stashText, "STASH");
+        string? foundInRaid = Cached(ref s_foundInRaidText, "FoundInRaid");
 
-        return text.Contains(s_stashText, StringComparison.InvariantCultureIgnoreCase)
-            || text.Contains(s_foundInRaidText, StringComparison.InvariantCultureIgnoreCase);
+        return (stash is not null && text.Contains(stash, StringComparison.InvariantCultureIgnoreCase))
+            || (foundInRaid is not null && text.Contains(foundInRaid, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    /// <summary>
+    /// Resolves a localisation key once and remembers it. An empty result is deliberately not
+    /// cached: string.Contains("") is always true, so caching one would permanently classify every
+    /// tooltip as an insured/checkmark tooltip and suppress all price information. Localisation is
+    /// not necessarily loaded when the first tooltip appears, so this has to be retried instead.
+    /// </summary>
+    private static string? Cached(ref string? slot, string key)
+    {
+        if (!string.IsNullOrEmpty(slot))
+            return slot;
+
+        string? resolved = key.Localized(null);
+
+        if (!string.IsNullOrEmpty(resolved))
+            slot = resolved;
+
+        return string.IsNullOrEmpty(resolved) ? null : resolved;
     }
 
     private static bool TryShowPriceInformation(out string? priceInformationText, out double? highestComparePrice)
