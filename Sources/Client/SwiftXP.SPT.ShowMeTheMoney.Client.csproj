@@ -41,27 +41,44 @@
       Exclude="$(MSBuildThisFileDirectory)/../Common/Utilities/FileHashingUtility.cs;$(MSBuildThisFileDirectory)/../Common/Utilities/FileSearchUtility.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/**/*.dll" /> -->
+  <!--
+    Resolve the game and SPT assemblies straight out of an SPT install instead of a hand-populated
+    spt4-shared-dlls folder next to the repo, which has to be filled in by hand and silently leaves
+    every reference unresolved when it is missing. Override the install path per build with
+    -p:SPTPath=... ; the default below only applies when nothing is passed in.
+  -->
+  <PropertyGroup>
+    <SPTPath Condition="'$(SPTPath)' == ''">E:\SPT 4.0.10</SPTPath>
+    <AssemblySearchPaths>
+      $(AssemblySearchPaths);
+      $(SPTPath)\EscapeFromTarkov_Data\Managed;
+      $(SPTPath)\BepInEx\core;
+      $(SPTPath)\BepInEx\plugins\spt;
+    </AssemblySearchPaths>
+  </PropertyGroup>
 
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/0Harmony.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Assembly-CSharp.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/BepInEx.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Comfort.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/ItemComponent.Types.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Newtonsoft.Json.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Sirenix.Serialization.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/spt-common.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/spt-reflection.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/Unity.TextMeshPro.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/UnityEngine.CoreModule.dll" />
-    <Reference
-      Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/UnityEngine.IMGUIModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)/../../../spt4-shared-dlls/UnityEngine.UI.dll" />
+  <ItemGroup>
+    <Reference Include="0Harmony" />
+    <Reference Include="Assembly-CSharp" />
+    <Reference Include="BepInEx" />
+    <Reference Include="Comfort" />
+    <Reference Include="ItemComponent.Types" />
+    <Reference Include="Newtonsoft.Json" />
+    <Reference Include="Sirenix.Serialization" />
+    <Reference Include="spt-common" />
+    <Reference Include="spt-reflection" />
+    <Reference Include="Unity.TextMeshPro" />
+    <Reference Include="UnityEngine.CoreModule" />
+    <Reference Include="UnityEngine.IMGUIModule" />
+    <Reference Include="UnityEngine.UI" />
   </ItemGroup>
+
+  <!-- Drop the built plugin straight into the install, so no file has to be copied by hand. -->
+  <Target Name="CopyToSPT" AfterTargets="AfterBuild" Condition="Exists('$(SPTPath)')">
+    <MakeDir Directories="$(SPTPath)\BepInEx\plugins\com.swiftxp.spt.showmethemoney" />
+    <Copy SourceFiles="$(TargetPath)"
+      DestinationFolder="$(SPTPath)\BepInEx\plugins\com.swiftxp.spt.showmethemoney" />
+  </Target>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2"
