@@ -64,8 +64,17 @@ public class InstantFleaSellService(ISptLogger<InstantFleaSellService> sptLogger
         // Leaving fees on means an instant sale nets exactly what waiting for the offer would have.
         ragfairConfig.Sell.Fees = config.ChargeFees;
 
+        // A sale time of zero still only takes effect on the server's next flea pass, so that
+        // interval is what the delay is actually made of.
+        if (config.OutOfRaidCheckIntervalSeconds > 0)
+        {
+            ragfairConfig.RunIntervalSeconds = config.OutOfRaidCheckIntervalSeconds;
+            ragfairConfig.RunIntervalValues.OutOfRaid = config.OutOfRaidCheckIntervalSeconds;
+        }
+
         sptLogger.Info(
-            $"{Constants.LoggerPrefix}Player flea offers now sell immediately (fees {(config.ChargeFees ? "charged" : "waived")}). "
+            $"{Constants.LoggerPrefix}Player flea offers now sell immediately (fees {(config.ChargeFees ? "charged" : "waived")}, "
+            + $"checked every {(config.OutOfRaidCheckIntervalSeconds > 0 ? config.OutOfRaidCheckIntervalSeconds + "s" : "SPT default")} out of raid). "
             + $"Money arrives in the messenger, as it does for any completed flea sale.");
     }
 
