@@ -19,8 +19,17 @@ dotnet build
 `E:\SPT 4.1`. `Directory.Build.targets`가 그 경로에 `Assembly-CSharp.dll`이 실제로
 있는지 검사하므로 오타는 바로 잡힙니다.
 
-클라이언트는 빌드 후 `$(SptRoot)\BepInEx\plugins\com.swiftxp.spt.showmethemoney\`로
-바로 복사됩니다.
+빌드하면 양쪽 다 설치본으로 바로 복사됩니다:
+
+| 프로젝트 | 배포 위치 |
+|---|---|
+| Client | `$(SptRoot)\BepInEx\plugins\com.swiftxp.spt.showmethemoney\` |
+| Server | `$(SptRoot)\SPT_Runtime\user\mods\com.swiftxp.spt.showmethemoney\` |
+
+**서버 쪽이 빠져 있으면** 클라이언트가 `/showMeTheMoney/getFleaPrices`,
+`/showMeTheMoney/getPartialRagfairConfig`를 호출하는데 받을 쪽이 없어서 서버 로그에
+`처리되지 않은 응답`(unhandled response)만 쌓이고, 서버 시작 시 로드된 모드 목록에도
+안 보입니다. 플리 가격이 툴팁에 아예 안 뜨는 증상으로 나타납니다.
 
 ### 서브모듈 (중요)
 
@@ -184,3 +193,16 @@ git submodule update --init --recursive
 - `PluginContextDataHolder` 호환 shim은 그대로 둡니다. 이 레포의 Quick Sell도 4.1로
   같이 올리지만, 배포본 Quick Sell 2.3.0을 쓰는 경우가 남아 있어서 비용이 없는 쪽을
   택했습니다
+
+- **서버 모드가 빌드해도 설치되지 않던 문제 수정.** 클라이언트 프로젝트에는 설치본
+  복사 타겟이 있었는데 **서버 프로젝트에는 없었습니다** (원작도 없음 — `Publish` 폴더로
+  내보내는 타겟만 있고 그건 `dotnet publish`를 따로 돌려야 합니다). 그래서 빌드하면
+  클라이언트만 깔리고, 그 클라이언트가 곧바로 `/showMeTheMoney/getFleaPrices`와
+  `/showMeTheMoney/getPartialRagfairConfig`를 때리는데 서버엔 핸들러가 없어서
+  `[Error] 처리되지 않은 응답`만 남았습니다 (26/09/07 서버 로그에서 확인 — 로드된 모드
+  45개 중 `com.swiftxp.spt.showmethemoney` 없음). 릴리스 레이아웃과 같은 폴더명
+  (`user/mods/com.swiftxp.spt.showmethemoney`)으로 복사하는 `CopyToSPT` 타겟 추가
+
+- 클라이언트/서버 버전이 갈라져 있던 것 정리 — 업스트림 4.1 포팅이 서버 프로젝트에
+  `2.8.0`을 직접 박아둬서 공용 기본값 `2.7.0`을 덮고 있었습니다. 공용 기본값을 `2.8.0`으로
+  올려 둘이 다시 일치합니다 (Quick Sell이 요구하는 건 `2.6.0` 이상이라 어느 쪽이든 무관)
