@@ -11,11 +11,12 @@
     "Could not load [Show Me The Money - Quick Sell] because it has missing dependencies:
     com.swiftxp.spt.showmethemoney (v2.6.0 or newer)".
 
-    Declared here rather than per-project so the client and server always agree. Overridable with
-    -p:Version=... for a release build.
+    Declared here rather than per-project so the client and server always agree. 2.8.0 is the
+    number upstream's 4.1 port pins in the server project, so the client matches it rather than
+    trailing at 2.7.0. Overridable with -p:Version=... for a release build.
   -->
   <PropertyGroup>
-    <Version Condition="'$(Version)' == ''">2.7.0</Version>
+    <Version Condition="'$(Version)' == ''">2.8.0</Version>
   </PropertyGroup>
 
   <PropertyGroup>

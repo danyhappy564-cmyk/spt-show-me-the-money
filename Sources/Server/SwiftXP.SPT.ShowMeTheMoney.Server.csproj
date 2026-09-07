@@ -37,6 +37,20 @@
     <Reference Include="$(SptRuntime)\SemanticVersioning.dll" Private="false" />
   </ItemGroup>
 
+  <!--
+    Drop the built server mod straight into the install, the way the client project already does.
+    Without this, `dotnet build` produces a client plugin that immediately starts calling
+    /showMeTheMoney/getFleaPrices and /showMeTheMoney/getPartialRagfairConfig against a server that
+    has no handler for them - the server log fills with "unhandled response" on both routes and the
+    mod is simply absent from the loaded-mod list, because nothing ever copied it there. The folder
+    name matches the one the release layout uses (CopyToPublishFolder below).
+  -->
+  <Target Name="CopyToSPT" AfterTargets="AfterBuild" Condition="Exists('$(SptRuntime)')">
+    <MakeDir Directories="$(SptRuntime)\user\mods\com.swiftxp.spt.showmethemoney" />
+    <Copy SourceFiles="$(TargetPath)"
+      DestinationFolder="$(SptRuntime)\user\mods\com.swiftxp.spt.showmethemoney" />
+  </Target>
+
   <Target Name="GenerateLicenseFile" AfterTargets="Publish">
     <Message Text="Generating license file..." Importance="high" />
 
