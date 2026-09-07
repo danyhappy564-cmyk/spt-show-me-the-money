@@ -1,3 +1,7 @@
 [submodule "Sources/Common"]
 	path = Sources/Common
+	# absolute, NOT upstream's relative "../spt-common.git": a relative submodule URL
+	# resolves against THIS repository's own remote, so in a fork it points at
+	# <fork-owner>/spt-common, which does not exist. swiftxp-hub/spt-common carries the
+	# 4.1 helper commit upstream pins, so the absolute URL reaches it from any fork.
 	url = https://github.com/swiftxp-hub/spt-common.git

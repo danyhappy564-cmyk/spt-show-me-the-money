@@ -1,5 +1,7 @@
+using EFT;
 using EFT.InventoryLogic;
 using EFT.UI;
+using EFT.UI.Ragfair;
 using SPT.Reflection.Patching;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Contexts;
 using System.Reflection;
@@ -198,8 +200,8 @@ public class SimpleTooltipShowPatch : ModulePatch
 
         if (PluginContextHolder.Current!.Configuration!.EnableFleaPrices.IsEnabled()
             && (SptSession.Session.RagFair.Available || PluginContextHolder.Current!.Configuration!.AlwaysShowFleaPrice.IsEnabled())
-            && (!RagFairClass.Settings.isOnlyFoundInRaidAllowed
-                || (RagFairClass.Settings.isOnlyFoundInRaidAllowed && tradeItem.Item.MarkedAsSpawnedInSession)
+            && (!RagFair.Settings.isOnlyFoundInRaidAllowed
+                || (RagFair.Settings.isOnlyFoundInRaidAllowed && tradeItem.Item.MarkedAsSpawnedInSession)
                 || PluginContextHolder.Current!.Configuration!.AlwaysShowFleaPrice.IsEnabled()))
         {
             hasFleaPrice = FleaPriceUtility.GetFleaPrice(tradeItem, PluginContextHolder.Current!.Configuration!.IncludeFleaTax, out isCombinedPrice);
@@ -226,8 +228,7 @@ public class SimpleTooltipShowPatch : ModulePatch
 
         foreach (Mod mod in weapon.Mods)
         {
-            Mod clonedMod = mod.CloneItem();
-            clonedMod.Slots = [];
+            Mod clonedMod = mod.CloneForPricing(stripChildSlots: true);
 
             TradeItem modTradeItem = new(clonedMod);
 
@@ -239,8 +240,8 @@ public class SimpleTooltipShowPatch : ModulePatch
 
             if (PluginContextHolder.Current!.Configuration!.EnableFleaPrices.IsEnabled()
                 && (SptSession.Session.RagFair.Available || PluginContextHolder.Current!.Configuration!.AlwaysShowFleaPrice.IsEnabled())
-                && (!RagFairClass.Settings.isOnlyFoundInRaidAllowed
-                    || (RagFairClass.Settings.isOnlyFoundInRaidAllowed && mod.MarkedAsSpawnedInSession)
+                && (!RagFair.Settings.isOnlyFoundInRaidAllowed
+                    || (RagFair.Settings.isOnlyFoundInRaidAllowed && mod.MarkedAsSpawnedInSession)
                     || PluginContextHolder.Current!.Configuration!.AlwaysShowFleaPrice.IsEnabled()))
             {
                 modHasFleaPrice = FleaPriceUtility.GetFleaPrice(modTradeItem, PluginContextHolder.Current!.Configuration!.IncludeFleaTax);
@@ -257,7 +258,7 @@ public class SimpleTooltipShowPatch : ModulePatch
             {
                 modsPrice += modTradeItem.FleaPrice!.GetTotalPriceInRouble();
             }
-            else
+            else if (modHasTraderPrice)
             {
                 modsPrice += modTradeItem.TraderPrice!.GetTotalPriceInRouble();
             }
@@ -272,9 +273,9 @@ public class SimpleTooltipShowPatch : ModulePatch
         double platesPrice = 0d;
 
         ArmorHolderComponent armorHolderComponent = armorItem.GetItemComponent<ArmorHolderComponent>();
-        foreach (ArmorPlateItemClass armorPlateItemClass in armorHolderComponent.MoveAbleArmorPlates)
+        foreach (ArmorPlate armorPlateItemClass in armorHolderComponent.MoveAbleArmorPlates)
         {
-            ArmorPlateItemClass clonedPlate = armorPlateItemClass.CloneItem();
+            ArmorPlate clonedPlate = armorPlateItemClass.CloneForPricing(stripChildSlots: true);
             TradeItem plateTradeItem = new(clonedPlate);
 
             bool modHasTraderPrice = false;
@@ -285,8 +286,8 @@ public class SimpleTooltipShowPatch : ModulePatch
 
             if (PluginContextHolder.Current!.Configuration!.EnableFleaPrices.IsEnabled()
                 && (SptSession.Session.RagFair.Available || PluginContextHolder.Current!.Configuration!.AlwaysShowFleaPrice.IsEnabled())
-                && (!RagFairClass.Settings.isOnlyFoundInRaidAllowed
-                    || (RagFairClass.Settings.isOnlyFoundInRaidAllowed && armorPlateItemClass.MarkedAsSpawnedInSession)
+                && (!RagFair.Settings.isOnlyFoundInRaidAllowed
+                    || (RagFair.Settings.isOnlyFoundInRaidAllowed && armorPlateItemClass.MarkedAsSpawnedInSession)
                     || PluginContextHolder.Current!.Configuration!.AlwaysShowFleaPrice.IsEnabled()))
             {
                 modHasFleaPrice = FleaPriceUtility.GetFleaPrice(plateTradeItem, PluginContextHolder.Current!.Configuration!.IncludeFleaTax);
@@ -303,7 +304,7 @@ public class SimpleTooltipShowPatch : ModulePatch
             {
                 platesPrice += plateTradeItem.FleaPrice!.GetTotalPriceInRouble();
             }
-            else
+            else if (modHasTraderPrice)
             {
                 platesPrice += plateTradeItem.TraderPrice!.GetTotalPriceInRouble();
             }
@@ -319,7 +320,7 @@ public class SimpleTooltipShowPatch : ModulePatch
         {
             Item item = PluginContextHolder.Current.HoveredItem!;
             if (PluginContextHolder.Current!.Configuration!.UseCaliberPenetrationPower.IsEnabled()
-                && (item is AmmoBox || item is AmmoItemClass))
+                && (item is AmmoBox || item is Ammo))
             {
                 SetColorCodingForAmmunition(item, ref text, textToReplace);
             }
@@ -337,10 +338,10 @@ public class SimpleTooltipShowPatch : ModulePatch
         int? penetrationPower = null;
         if (item is AmmoBox ammoBox)
         {
-            AmmoItemClass? ammoItemClass = ammoBox.Cartridges.Items.First() as AmmoItemClass;
+            Ammo? ammoItemClass = ammoBox.Cartridges.Items.First() as Ammo;
             penetrationPower = ammoItemClass?.PenetrationPower;
         }
-        else if (item is AmmoItemClass ammoItemClass)
+        else if (item is Ammo ammoItemClass)
         {
             penetrationPower = ammoItemClass?.PenetrationPower;
         }
@@ -423,7 +424,7 @@ public class SimpleTooltipShowPatch : ModulePatch
     {
         return SptSession.Session.Profile.Examined(item)
             && (!item.IsContainer || (item.IsContainer && item.IsEmpty()))
-            && !(item.Owner.OwnerType != EOwnerType.Profile && item.Owner.GetType() == typeof(TraderControllerClass));
+            && item.Owner.OwnerType != EOwnerType.Trader;
     }
 
     private static string? GetTextOfInstance()

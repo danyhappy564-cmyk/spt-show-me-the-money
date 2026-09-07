@@ -1,8 +1,11 @@
 <Project>
 
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')" />
+
   <!--
-    The mod's version is not declared anywhere in the repository, so a local build produces the
-    MSBuild default of 1.0.0. That version is what ends up in the BepInEx plugin metadata (via
+    The mod's version is not declared anywhere upstream, so a local build produces the MSBuild
+    default of 1.0.0. That version is what ends up in the BepInEx plugin metadata (via
     BepInEx.PluginInfoProps -> MyPluginInfo.PLUGIN_VERSION) and in the server mod metadata (via
     AppMetadata.Version, which reads the assembly version), so dependent plugins refuse to load:
     "Could not load [Show Me The Money - Quick Sell] because it has missing dependencies:
@@ -13,6 +16,19 @@
   -->
   <PropertyGroup>
     <Version Condition="'$(Version)' == ''">2.7.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SptRoot Condition="'$(SptRoot)' == '' and '$(SPT_ROOT)' != ''">$(SPT_ROOT)</SptRoot>
+    <!--
+      Fork default, so a clone builds without first creating Directory.Build.props.user. Last in
+      the chain, so Directory.Build.props.user, -p:SptRoot=... and $(SPT_ROOT) all still win.
+      Directory.Build.targets still validates whatever this resolves to.
+    -->
+    <SptRoot Condition="'$(SptRoot)' == ''">E:\SPT 4.1</SptRoot>
+    <SptManaged>$(SptRoot)\EscapeFromTarkov_Data\Managed</SptManaged>
+    <SptBepInEx>$(SptRoot)\BepInEx</SptBepInEx>
+    <SptRuntime>$(SptRoot)\SPT_Runtime</SptRuntime>
   </PropertyGroup>
 
 </Project>

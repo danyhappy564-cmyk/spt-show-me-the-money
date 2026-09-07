@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using EFT;
 using EFT.InventoryLogic;
+using EFT.Trading;
 using SwiftXP.SPT.Common.ConfigurationManager;
 using SwiftXP.SPT.Common.Constants;
 using SwiftXP.SPT.Common.Sessions;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Contexts.Holders;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Data;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Extensions;
+using SwiftXP.SPT.ShowMeTheMoney.Client.Utilities;
 using UnityEngine;
 
 namespace SwiftXP.SPT.ShowMeTheMoney.Client.Services;
@@ -81,7 +83,7 @@ public class TraderPriceService
             return tradeItem.TraderPrice is not null;
         }
 
-        TraderQuote? best = FindBestQuote(tradeItem);
+        TraderQuote? best = FindBestQuote(tradeItem, roublesOnly);
 
         if (_quoteCache.Count >= CacheLimit)
             _quoteCache.Clear();
@@ -93,15 +95,15 @@ public class TraderPriceService
         return tradeItem.TraderPrice is not null;
     }
 
-    private TraderQuote? FindBestQuote(TradeItem tradeItem)
+    private TraderQuote? FindBestQuote(TradeItem tradeItem, bool roublesOnly)
     {
         TraderQuote? best = null;
         double bestComparePrice = 0d;
 
         // The single-unit item does not depend on the trader, so clone it once instead of once per
-        // trader. For an unstacked item no clone is needed at all - it already is a single unit -
-        // and its total price is by definition the same as its single price, so that second lookup
-        // can go too.
+        // trader (upstream clones inside the per-trader call). For an unstacked item no clone is
+        // needed at all - it already is a single unit - and its total price is by definition the
+        // same as its single price, so that second lookup can go too.
         Item item = tradeItem.Item;
         bool isStacked = item.StackObjectsCount > 1;
         Item singleItem = item;
@@ -110,7 +112,9 @@ public class TraderPriceService
         {
             try
             {
-                singleItem = item.CloneItem();
+                // 4.1's Item.CloneItem needs an IDatabaseIdGenerator; CloneForPricing supplies a
+                // throwaway one, which is what this clone wants - it never reaches the profile.
+                singleItem = item.CloneForPricing();
                 singleItem.StackObjectsCount = 1;
             }
             catch (Exception)
@@ -122,18 +126,18 @@ public class TraderPriceService
             }
         }
 
-        foreach (TraderClass trader in SptSession.Session.Traders)
+        foreach (Trader trader in SptSession.Session.Traders)
         {
             if (!IsTraderAvailable(trader))
                 continue;
 
             if (!TryGetTraderUserItemPrice(trader, item, singleItem, isStacked,
-                    out TraderClass.GStruct300? singleObjectPrice, out TraderClass.GStruct300? totalPrice))
+                    out Trader.ItemPrice? singleObjectPrice, out Trader.ItemPrice? totalPrice))
             {
                 continue;
             }
 
-            if (PluginContextHolder.Current!.Configuration!.RoublesOnly.IsEnabled()
+            if (roublesOnly
                 && singleObjectPrice!.Value.CurrencyId.ToString() != SptConstants.CurrencyIds.Roubles)
             {
                 continue;
@@ -161,7 +165,7 @@ public class TraderPriceService
         return best;
     }
 
-    private bool IsTraderAvailable(TraderClass trader)
+    private bool IsTraderAvailable(Trader trader)
     {
         bool isAvailable = trader.Info.Available && !trader.Info.Disabled && trader.Info.Unlocked;
         bool isIgnored = TradersToIgnore.Any(
@@ -171,8 +175,8 @@ public class TraderPriceService
         return isAvailable && !isIgnored;
     }
 
-    private static bool TryGetTraderUserItemPrice(TraderClass trader, Item item, Item singleItem, bool isStacked,
-        out TraderClass.GStruct300? singleObjectPrice, out TraderClass.GStruct300? totalPrice)
+    private static bool TryGetTraderUserItemPrice(Trader trader, Item item, Item singleItem, bool isStacked,
+        out Trader.ItemPrice? singleObjectPrice, out Trader.ItemPrice? totalPrice)
     {
         singleObjectPrice = null;
         totalPrice = null;
@@ -193,10 +197,14 @@ public class TraderPriceService
         return singleObjectPrice is not null;
     }
 
-    private static double? GetCurrencyCourse(TraderClass trader, MongoID? currencyId)
+    private static double? GetCurrencyCourse(Trader trader, MongoID? currencyId)
     {
         if (!currencyId.HasValue)
             return null;
+
+        // 4.1 exposes the courses directly on the trader; GetSupplyData stays as the fallback.
+        if (trader.CurrencyCourses != null && trader.CurrencyCourses.TryGetValue(currencyId.Value.ToString(), out double course))
+            return course;
 
         double? result = trader.GetSupplyData()?.CurrencyCourses[currencyId.Value];
 

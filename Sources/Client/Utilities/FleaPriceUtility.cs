@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using EFT;
 using EFT.InventoryLogic;
+using EFT.Trading;
 using SwiftXP.SPT.Common.ConfigurationManager;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Contexts.Holders;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Data;
@@ -80,8 +82,8 @@ public static class FleaPriceUtility
 
         if (PluginContextHolder.Current!.Configuration!.IncludeFleaTax || PluginContextHolder.Current!.Configuration!.ShowFleaTax)
         {
-            singleObjectTaxPrice = FleaTaxCalculatorAbstractClass.CalculateTaxPrice(tradeItem.Item, 1, fleaPriceAfterMultiply, false);
-            totalTaxPrice = FleaTaxCalculatorAbstractClass.CalculateTaxPrice(tradeItem.Item, tradeItem.ItemObjectCount, fleaPriceAfterMultiply, false);
+            singleObjectTaxPrice = PriceCalculator.CalculateTaxPrice(tradeItem.Item, 1, fleaPriceAfterMultiply, false);
+            totalTaxPrice = PriceCalculator.CalculateTaxPrice(tradeItem.Item, tradeItem.ItemObjectCount, fleaPriceAfterMultiply, false);
         }
 
         TradePrice tradePrice =

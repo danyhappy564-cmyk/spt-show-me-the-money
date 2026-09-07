@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using SPT.Common.Http;
 using SwiftXP.SPT.Common.ConfigurationManager;
 using SwiftXP.SPT.Common.EFT;
-using SwiftXP.SPT.Common.Loggers.Interfaces;
+using SwiftXP.SPT.Common.Loggers;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Contexts.Holders;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Data.Holders;
 

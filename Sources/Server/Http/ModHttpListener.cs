@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Http;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Models.Common;
-using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Common.Models.Logging;
 using SPTarkov.Server.Core.Servers.Http;
 using SwiftXP.SPT.ShowMeTheMoney.Server.Services;
 
 namespace SwiftXP.SPT.ShowMeTheMoney.Server.Http;
 
-[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.PreSptModLoader)]
+[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.Preload)]
 public class ModHttpListener(
     ISptLogger<ModHttpListener> sptLogger,
     FleaPricesService fleaPricesService,
@@ -20,12 +20,12 @@ public class ModHttpListener(
     private static readonly PathString s_pathGetFleaPrices = new($"{Constants.RoutePrefix}{Constants.RouteGetFleaPrices}");
     private static readonly PathString s_pathGetPartialRagfairConfig = new($"{Constants.RoutePrefix}{Constants.RouteGetPartialRagfairConfig}");
 
-    public bool CanHandle(MongoId sessionId, HttpContext context)
+    public bool CanHandle(HttpContext context)
     {
         return context.Request.Path.StartsWithSegments(Constants.RoutePrefix, StringComparison.OrdinalIgnoreCase);
     }
 
-    public async Task Handle(MongoId sessionId, HttpContext context)
+    public async Task HandleAsync(MongoId sessionId, HttpContext context, System.Threading.CancellationToken cancellationToken)
     {
         try
         {
@@ -33,11 +33,11 @@ public class ModHttpListener(
 
             if (path.Equals(s_pathGetFleaPrices, StringComparison.OrdinalIgnoreCase))
             {
-                await HandleGetFleaPricesAsync(context);
+                await HandleGetFleaPricesAsync(context, cancellationToken);
             }
             else if (path.Equals(s_pathGetPartialRagfairConfig, StringComparison.OrdinalIgnoreCase))
             {
-                await HandleGetPartialRagfairConfigAsync(context);
+                await HandleGetPartialRagfairConfigAsync(context, cancellationToken);
             }
             else
             {
@@ -52,18 +52,18 @@ public class ModHttpListener(
         }
     }
 
-    private async Task HandleGetFleaPricesAsync(HttpContext context)
+    private async Task HandleGetFleaPricesAsync(HttpContext context, System.Threading.CancellationToken cancellationToken)
     {
         IReadOnlyDictionary<string, double> result = fleaPricesService.Get();
 
-        await context.Response.WriteAsJsonAsync(result, context.RequestAborted);
+        await context.Response.WriteAsJsonAsync(result, cancellationToken);
     }
 
-    private async Task HandleGetPartialRagfairConfigAsync(HttpContext context)
+    private async Task HandleGetPartialRagfairConfigAsync(HttpContext context, System.Threading.CancellationToken cancellationToken)
     {
         Data.PartialRagfairConfig result = ragfairConfigService.Get();
 
-        await context.Response.WriteAsJsonAsync(result, context.RequestAborted);
+        await context.Response.WriteAsJsonAsync(result, cancellationToken);
     }
 
     private Task HandleUnknownRouteAsync(HttpContext context, string requestPath)

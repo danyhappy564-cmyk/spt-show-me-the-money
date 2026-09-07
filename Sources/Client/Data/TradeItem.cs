@@ -6,7 +6,7 @@ public class TradeItem
 {
     public TradeItem(Item item, TradePrice? traderPrice = null, TradePrice? fleaPrice = null)
     {
-        XYCellSizeStruct itemSize = item.CalculateCellSize();
+        IntVec2 itemSize = item.CalculateCellSize();
         ItemSlotCount = itemSize.X * itemSize.Y;
 
         Item = item;
