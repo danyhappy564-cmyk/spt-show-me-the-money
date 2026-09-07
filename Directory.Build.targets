@@ -5,4 +5,24 @@
     <Error Condition="'$(SptRoot)' != '' and !Exists('$(SptManaged)\Assembly-CSharp.dll')"
            Text="SptRoot '$(SptRoot)' does not look like an SPT install (missing EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll)." />
   </Target>
+
+  <!--
+    The Sources/Common submodule was RESTRUCTURED for 4.1: everything moved from the repository
+    root (Constants/, Loggers/, Runtime/, ...) down into Sources/Common/. The Compile globs in both
+    project files point at the new layout, so a stale or uninitialised submodule silently
+    contributes zero source files and the build fails with a wall of missing types
+    (SptSession, SptConstants, AppMetadata, the loggers) that looks like broken references rather
+    than a checkout problem. Say what it actually is.
+  -->
+  <Target Name="EnsureCommonSubmodule" BeforeTargets="BeforeBuild">
+    <PropertyGroup>
+      <_CommonProbeFile>$(MSBuildThisFileDirectory)Sources\Common\Sources\Common\Runtime\AppMetadata.cs</_CommonProbeFile>
+      <_CommonOldLayoutProbe>$(MSBuildThisFileDirectory)Sources\Common\Runtime\AppMetadata.cs</_CommonOldLayoutProbe>
+    </PropertyGroup>
+
+    <Error Condition="!Exists('$(_CommonProbeFile)') and Exists('$(_CommonOldLayoutProbe)')"
+           Text="The Sources/Common submodule is on the pre-4.1 layout (sources at the repository root instead of under Sources/Common/). Run: git submodule update --init --recursive" />
+    <Error Condition="!Exists('$(_CommonProbeFile)') and !Exists('$(_CommonOldLayoutProbe)')"
+           Text="The Sources/Common submodule is not checked out. Run: git submodule update --init --recursive" />
+  </Target>
 </Project>

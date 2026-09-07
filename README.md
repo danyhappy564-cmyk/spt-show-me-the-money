@@ -22,9 +22,22 @@ dotnet build
 클라이언트는 빌드 후 `$(SptRoot)\BepInEx\plugins\com.swiftxp.spt.showmethemoney\`로
 바로 복사됩니다.
 
-서브모듈은 `git submodule update --init` 한 번 필요합니다. `.gitmodules`는 절대 URL
-(`swiftxp-hub/spt-common`)을 씁니다 — 상대 URL(`../spt-common.git`)은 **이 레포 자신의
-원격 기준**으로 풀려서 포크에서는 `<포크주인>/spt-common`을 가리키게 되고, 그건 없습니다.
+### 서브모듈 (중요)
+
+```
+git submodule update --init --recursive
+```
+
+4.1 포팅에서 `Sources/Common` 서브모듈이 **재구성**됐습니다. 소스가 레포 루트
+(`Constants/`, `Loggers/`, `Runtime/` …)에서 `Sources/Common/` 아래로 전부 내려갔고,
+두 프로젝트의 `Compile` 글롭이 새 경로를 가리킵니다. 서브모듈이 예전 커밋에 머물러
+있으면 Common 소스가 **하나도** 컴파일 대상에 안 잡혀서 `SptSession`, `SptConstants`,
+`AppMetadata`, 로거가 통째로 없는 것처럼 보입니다 — 참조가 깨진 것처럼 보이지만 실제로는
+체크아웃 문제입니다. `Directory.Build.targets`가 이 상태를 감지해서 명령어까지 찍어줍니다.
+
+`.gitmodules`는 절대 URL(`swiftxp-hub/spt-common`)을 씁니다 — 상대 URL
+(`../spt-common.git`)은 **이 레포 자신의 원격 기준**으로 풀려서 포크에서는
+`<포크주인>/spt-common`을 가리키게 되고, 그건 없습니다.
 
 ---
 
