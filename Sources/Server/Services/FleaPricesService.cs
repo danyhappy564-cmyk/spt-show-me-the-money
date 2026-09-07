@@ -7,16 +7,18 @@ using System.Threading.Tasks;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Extensions;
-using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Commerce;
+using SPTarkov.Server.Core.Helpers.Items;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Ragfair;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Models.Enums;
+using SPTarkov.Common.Models.Logging;
+using SPTarkov.Server.Core.Services.Ragfair;
 
 namespace SwiftXP.SPT.ShowMeTheMoney.Server.Services;
 
-[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.PreSptModLoader - 1)]
+[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.Preload - 1)]
 public class FleaPricesService(ISptLogger<FleaPricesService> sptLogger,
     ItemHelper itemHelper,
     RagfairPriceService ragfairPriceService,
@@ -64,17 +66,17 @@ public class FleaPricesService(ISptLogger<FleaPricesService> sptLogger,
                         price = GetAveragePriceFromOffers(itemId);
 
                     if (IsValidPrice(price))
-                        tempResult.TryAdd(itemId, price);
+                        tempResult.TryAdd(itemId.ToString(), price);
 
                     else if (IsValidPrice(fallbackPrice))
-                        tempResult.TryAdd(itemId, fallbackPrice);
+                        tempResult.TryAdd(itemId.ToString(), fallbackPrice);
                 }
                 catch (Exception ex)
                 {
                     sptLogger.Debug($"{Constants.LoggerPrefix}[DEBUG] Error calculating price for item {fleaPrice.Key}: {ex}");
 
                     if (IsValidPrice(fleaPrice.Value))
-                        tempResult.TryAdd(fleaPrice.Key, fleaPrice.Value);
+                        tempResult.TryAdd(fleaPrice.Key.ToString(), fleaPrice.Value);
                 }
             });
 

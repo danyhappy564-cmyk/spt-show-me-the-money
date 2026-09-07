@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <Version>2.8.0</Version>
 
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
@@ -26,13 +27,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Runtime/AppMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Runtime/AppMetadata.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SPTarkov.Common" Version="4.0.12" />
-    <PackageReference Include="SPTarkov.DI" Version="4.0.12" />
-    <PackageReference Include="SPTarkov.Server.Core" Version="4.0.12" />
+    <Reference Include="$(SptRuntime)\SPTarkov.Common.dll" Private="false" />
+    <Reference Include="$(SptRuntime)\SPTarkov.DI.dll" Private="false" />
+    <Reference Include="$(SptRuntime)\SPTarkov.Server.Core.dll" Private="false" />
+    <Reference Include="$(SptRuntime)\SemanticVersioning.dll" Private="false" />
   </ItemGroup>
 
   <Target Name="GenerateLicenseFile" AfterTargets="Publish">

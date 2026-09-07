@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <Version>2.8.0</Version>
 
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
@@ -30,62 +31,48 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" /> -->
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
     <PackageReference Include="UnityEngine.Modules" Version="2022.3.43" IncludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)/../Common/**/*.cs"
-      Exclude="$(MSBuildThisFileDirectory)/../Common/Utilities/FileHashingUtility.cs;$(MSBuildThisFileDirectory)/../Common/Utilities/FileSearchUtility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/ConfigurationManager/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Constants/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Environment/EFTGameExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Loggers/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Notifications/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Runtime/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)/../Common/Sources/Common/Sessions/**/*.cs" />
   </ItemGroup>
 
-  <!--
-    Resolve the game and SPT assemblies straight out of an SPT install instead of a hand-populated
-    spt4-shared-dlls folder next to the repo, which has to be filled in by hand and silently leaves
-    every reference unresolved when it is missing. Override the install path per build with
-    -p:SPTPath=... ; the default below only applies when nothing is passed in.
-  -->
-  <PropertyGroup>
-    <SPTPath Condition="'$(SPTPath)' == ''">E:\SPT 4.0.10</SPTPath>
-    <AssemblySearchPaths>
-      $(AssemblySearchPaths);
-      $(SPTPath)\EscapeFromTarkov_Data\Managed;
-      $(SPTPath)\BepInEx\core;
-      $(SPTPath)\BepInEx\plugins\spt;
-    </AssemblySearchPaths>
-  </PropertyGroup>
-
   <ItemGroup>
-    <Reference Include="0Harmony" />
-    <Reference Include="Assembly-CSharp" />
-    <Reference Include="BepInEx" />
-    <Reference Include="Comfort" />
-    <Reference Include="ItemComponent.Types" />
-    <Reference Include="Newtonsoft.Json" />
-    <Reference Include="Sirenix.Serialization" />
-    <Reference Include="spt-common" />
-    <Reference Include="spt-reflection" />
-    <Reference Include="Unity.TextMeshPro" />
-    <Reference Include="UnityEngine.CoreModule" />
-    <Reference Include="UnityEngine.IMGUIModule" />
-    <Reference Include="UnityEngine.UI" />
+    <Reference Include="$(SptBepInEx)\core\0Harmony.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Assembly-CSharp.dll" Private="false" />
+    <Reference Include="$(SptBepInEx)\core\BepInEx.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Comfort.dll" Private="false" />
+    <Reference Include="$(SptManaged)\ItemComponent.Types.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Newtonsoft.Json.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Sirenix.Serialization.dll" Private="false" />
+    <Reference Include="$(SptBepInEx)\plugins\spt\spt-common.dll" Private="false" />
+    <Reference Include="$(SptBepInEx)\plugins\spt\spt-reflection.dll" Private="false" />
+    <Reference Include="$(SptManaged)\Unity.TextMeshPro.dll" Private="false" />
+    <Reference Include="$(SptManaged)\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="$(SptManaged)\UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="$(SptManaged)\UnityEngine.UI.dll" Private="false" />
   </ItemGroup>
 
   <!-- Drop the built plugin straight into the install, so no file has to be copied by hand. -->
-  <Target Name="CopyToSPT" AfterTargets="AfterBuild" Condition="Exists('$(SPTPath)')">
-    <MakeDir Directories="$(SPTPath)\BepInEx\plugins\com.swiftxp.spt.showmethemoney" />
+  <Target Name="CopyToSPT" AfterTargets="AfterBuild" Condition="Exists('$(SptRoot)')">
+    <MakeDir Directories="$(SptRoot)\BepInEx\plugins\com.swiftxp.spt.showmethemoney" />
     <Copy SourceFiles="$(TargetPath)"
-      DestinationFolder="$(SPTPath)\BepInEx\plugins\com.swiftxp.spt.showmethemoney" />
+      DestinationFolder="$(SptRoot)\BepInEx\plugins\com.swiftxp.spt.showmethemoney" />
   </Target>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2"
       PrivateAssets="all" />
   </ItemGroup>
-
-  <Import Project="$(MSBuildThisFileDirectory)/../Common/Utilities/Targets/ExtraCleanUp.targets" />
 
   <Target Name="GenerateLicenseFile" AfterTargets="Publish">
     <Message Text="Generating license file..." Importance="high" />

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SPT.Common.Http;
-using SwiftXP.SPT.Common.Loggers.Interfaces;
+using SwiftXP.SPT.Common.Loggers;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Data;
 using SwiftXP.SPT.ShowMeTheMoney.Client.Data.Holders;
 

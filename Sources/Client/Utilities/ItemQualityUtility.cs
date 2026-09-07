@@ -10,9 +10,10 @@ public static class ItemQualityUtility
     {
         double result = 1d;
 
-        if (item is MedsItemClass medsItem)
+        if (item is Meds medsItem)
         {
-            result = (medsItem.MedKitComponent?.HpResource / medsItem.MedKitComponent?.MaxHpResource) ?? 1d;
+            MedKitComponent? medKitComponent = medsItem.GetItemComponent<MedKitComponent>();
+            result = medKitComponent?.RelativeValue ?? 1d;
         }
         else if (IsRepairable(item, out RepairableComponent repairableComponent) && !item.TryGetItemComponent(out ArmorHolderComponent _))
         {
@@ -22,9 +23,10 @@ public static class ItemQualityUtility
         {
             result = GetArmorHolderQualityValue(item, armorHolderComponent);
         }
-        else if (item is FoodDrinkItemClass foodDrinkItem)
+        else if (item is FoodDrink foodDrinkItem)
         {
-            result = (foodDrinkItem.FoodDrinkComponent?.HpPercent / foodDrinkItem.FoodDrinkComponent?.MaxResource) ?? 1d;
+            FoodDrinkComponent? foodDrinkComponent = foodDrinkItem.GetItemComponent<FoodDrinkComponent>();
+            result = foodDrinkComponent?.RelativeValue ?? 1d;
         }
         else if (IsKey(item, out KeyComponent keyComponent) && keyComponent?.NumberOfUsages > 0 && keyComponent?.Template?.MaximumNumberOfUsage > 0)
         {
@@ -37,7 +39,7 @@ public static class ItemQualityUtility
         {
             result = resourceComponent.Value / resourceComponent.MaxResource;
         }
-        else if (item is RepairKitsItemClass repairKitsItemClass)
+        else if (item is RepairKit repairKitsItemClass)
         {
             result = repairKitsItemClass.Resource / repairKitsItemClass.MaxRepairResource;
         }
@@ -100,7 +102,7 @@ public static class ItemQualityUtility
             itemsWithQualityCount++;
         }
 
-        foreach (ArmorPlateItemClass armorPlateItemClass in armorHolderComponent.ArmorPlates)
+        foreach (ArmorPlate armorPlateItemClass in armorHolderComponent.ArmorPlates)
         {
             RepairableComponent repairableComponent = armorPlateItemClass.GetItemComponent<RepairableComponent>();
             if (repairableComponent != null)

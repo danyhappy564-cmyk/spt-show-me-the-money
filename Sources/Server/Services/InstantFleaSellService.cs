@@ -3,9 +3,8 @@ using System.IO;
 using System.Text.Json;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
+using SPTarkov.Common.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Config;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Servers;
 using SwiftXP.SPT.ShowMeTheMoney.Server.Data;
 
 namespace SwiftXP.SPT.ShowMeTheMoney.Server.Services;
@@ -25,8 +24,8 @@ namespace SwiftXP.SPT.ShowMeTheMoney.Server.Services;
 /// and that this applies to every offer the player lists - the server sees a quick sell and a
 /// hand-listed offer as the same ragfair request.
 /// </remarks>
-[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.PreSptModLoader - 1)]
-public class InstantFleaSellService(ISptLogger<InstantFleaSellService> sptLogger, ConfigServer configServer)
+[Injectable(InjectionType = InjectionType.Singleton, TypePriority = OnLoadOrder.Preload - 1)]
+public class InstantFleaSellService(ISptLogger<InstantFleaSellService> sptLogger, RagfairConfig ragfairConfig)
 {
     private const string ConfigFileName = "instant-flea-sell.json";
 
@@ -49,10 +48,9 @@ public class InstantFleaSellService(ISptLogger<InstantFleaSellService> sptLogger
             return;
         }
 
-#pragma warning disable CS0618 // ConfigServer is deprecated in SPT 4.2; there is no replacement yet on 4.0.x.
-        RagfairConfig ragfairConfig = configServer.GetConfig<RagfairConfig>();
-#pragma warning restore CS0618
-
+        // 4.1 hands RagfairConfig straight to the constructor - the 4.0 route through
+        // the deprecated ConfigServer.GetConfig<T>() is gone, and with it the CS0618
+        // pragma this block used to need.
         // Always sell, and sell now. Min/Max are the delay window in minutes that SPT rolls a sale
         // time from, so zeroing both makes the offer complete on the next ragfair pass.
         ragfairConfig.Sell.Chance.Base = 100;

@@ -1,0 +1,8 @@
+<Project>
+  <Target Name="EnsureSptRoot" BeforeTargets="BeforeBuild;ResolveAssemblyReferences">
+    <Error Condition="'$(SptRoot)' == ''"
+           Text="SPT path is not set. Copy Directory.Build.props.user.example to Directory.Build.props.user and set SptRoot, or pass /p:SptRoot=..., or set the SPT_ROOT environment variable." />
+    <Error Condition="'$(SptRoot)' != '' and !Exists('$(SptManaged)\Assembly-CSharp.dll')"
+           Text="SptRoot '$(SptRoot)' does not look like an SPT install (missing EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll)." />
+  </Target>
+</Project>
